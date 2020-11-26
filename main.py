@@ -1,7 +1,7 @@
 from kdtree import KDTree
 import matplotlib.pyplot as plt
 import numpy as np
-from geometry import Rect
+from geometry.Rect import Rect
 
 
 if __name__ == '__main__':
@@ -16,6 +16,8 @@ if __name__ == '__main__':
     plt.scatter(points[:, 0], points[:, 1])
     # plt.show()
     tree = KDTree(points)
-    print(tree.is_elem((76, 15)))
+    print(tree.contains((76, 15)))
+    print((40, 84) in tree)
+    print(np.array([44, 33]) in tree)
     rect = Rect((10, 10), (21, 85))
-    print(list(map(lambda x: x.point, tree.search_inside_rect(rect))))
+    print(list(map(lambda x: x.point, tree.find_points_in(rect))))
