@@ -58,6 +58,7 @@ class _KDTreeNode:
         self._condition_axis = axis
         self._condition_threshold = threshold
 
+    # maybe should change it to np.array instead of list
     def search_inside_rect(self, rect):
         if self.is_leaf():
             if rect.contains_point(self._point):

@@ -1,5 +1,6 @@
 from functools import reduce
 from geometry.Point import Point
+import numpy as np
 
 
 class Rect:
@@ -8,6 +9,9 @@ class Rect:
             lowerleft = Point(lowerleft)
         if not isinstance(upperright, Point):
             upperright = Point(upperright)
+        if lowerleft.axes_count != upperright.axes_count:
+            raise TypeError('Point dimensions do not match. It is not possible to instantiate Rect')
+        self._dimensions = lowerleft.axes_count
         self._lowerleft = lowerleft
         self._upperright = upperright
 
@@ -21,6 +25,13 @@ class Rect:
     @property
     def upperright(self):
         return self._upperright
+
+    @property
+    def dimensions(self):
+        return self._dimensions
+
+    def ptp_by_axis(self, axis):
+        return self.upperright.get_axis(axis) - self.lowerleft.get_axis(axis)
 
     @classmethod
     def from_points(cls, points):
@@ -45,16 +56,16 @@ class Rect:
         upr = self.upperright
         lwl = self.lowerleft
 
-        if lwl.point[axis] > threshold or upr.point[axis] < threshold:
+        if lwl.get_axis(axis) > threshold or upr.get_axis(axis) < threshold:
             raise ValueError("Wrong threshold passed. It does not belong to this rectangular")
 
         """
-         ---------------upr1------upr2
+         +--------------upr1------upr2
          |               |         |   upr2 == original upperright
          |               |         |
          |               |         |
          |               |         |   lwl1 == original lowerleft
-        lwl1------------lwl2--------
+        lwl1------------lwl2-------+
         """
 
         lwl1 = lwl
@@ -78,3 +89,17 @@ class Rect:
         upperright = self.upperright.find_min(rect.upperright)
 
         return Rect(lowerleft, upperright)
+
+    def add_border(self, border_width_ratio):
+        lowerleft = np.zeros(self._dimensions)
+        upperright = np.zeros(self._dimensions)
+
+        for idx, lwl_axis, upr_axis in zip(range(self._dimensions),
+                                           self._lowerleft.point,
+                                           self._upperright.point):
+            value_class = type(self._lowerleft.point[idx])
+            border_diff = value_class(border_width_ratio * (upr_axis - lwl_axis))
+            lowerleft[idx] = lwl_axis - border_diff
+            upperright[idx] = upr_axis + border_diff
+
+        return Rect(Point(lowerleft), Point(upperright))
