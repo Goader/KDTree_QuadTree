@@ -18,6 +18,12 @@ class Rect:
     def __eq__(self, other):
         return self.lowerleft == other.lowerleft and self.upperright == other.upperright
 
+    def __str__(self):
+        return f'{self._lowerleft} - {self._upperright}'
+
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def lowerleft(self):
         return self._lowerleft

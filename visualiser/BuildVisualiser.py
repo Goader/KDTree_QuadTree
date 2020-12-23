@@ -1,5 +1,4 @@
 from visualiser.Visualiser import Visualiser
-from visualiser.VisualiserContainer import VisualiserContainer
 
 
 class BuildVisualiser(Visualiser):
