@@ -9,6 +9,12 @@ class Point:
     def __eq__(self, other):
         return np.array_equal(self.point, other.point)
 
+    def __str__(self):
+        return str(self._point)
+
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def axes_count(self):
         return self._axes_count

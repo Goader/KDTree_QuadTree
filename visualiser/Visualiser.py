@@ -1,5 +1,6 @@
 from visualiser.VisualiserContainer import VisualiserContainer
 from matplotlib.widgets import Button
+from copy import copy
 import matplotlib.pyplot as plt
 
 
@@ -9,25 +10,25 @@ class Visualiser:
             raise ValueError('Visualiser supports only 2D objects (scope_rect)')
 
         self._scenes = [VisualiserContainer()]
-        self._scenes_count = 0
+        self._scenes_count = 1
 
         lwl, upr = scope_rect.lowerleft.point, scope_rect.upperright.point
 
         self._top_lim = upr[1]
         self._bottom_lim = lwl[1]
         self._left_lim = lwl[0]
-        self._right_lim = upr[1]
+        self._right_lim = upr[0]
 
         self._active_scene = None
 
     def add_points(self, points, **kwargs):
-        self._scenes[self._scenes_count].add_points(points, **kwargs)
+        self._scenes[-1].add_points(points, **kwargs)
 
     def add_lines(self, lines, **kwargs):
-        self._scenes[self._scenes_count].add_lines(lines, **kwargs)
+        self._scenes[-1].add_lines(lines, **kwargs)
 
     def add_rect(self, rect, **kwargs):
-        self._scenes[self._scenes_count].add_rect(rect, **kwargs)
+        self._scenes[-1].add_rect(rect, **kwargs)
 
     def next_scene(self):
         self._scenes_count += 1
@@ -43,7 +44,7 @@ class Visualiser:
 
     def _draw_scene(self):
         plt.close()
-        plt.figure(figsize=(12, 7))
+        plt.figure(figsize=(12, 8))
 
         ax_plot = plt.axes((0.05, 0.2, 0.9, 0.7))
         ax_prev = plt.axes((0.2, 0.03, 0.2, 0.09))
@@ -61,15 +62,15 @@ class Visualiser:
         container = self._scenes[self._active_scene]
 
         for rect in container.rects:
-            ax_plot.add_patch(rect)
+            ax_plot.add_patch(copy(rect))
 
         # recheck
         for lcoll in container.lines_collections:
             for line in lcoll.lines:
-                ax_plot.plot(line, **lcoll.kwargs)
+                ax_plot.plot(line[:, 0], line[:, 1], **lcoll.kwargs, zorder=1)
 
         for pcoll in container.points_collections:
-            ax_plot.scatter(pcoll.points[:, 0], pcoll.points[:, 1], **pcoll.kwargs)
+            ax_plot.scatter(pcoll.points[:, 0], pcoll.points[:, 1], **pcoll.kwargs, zorder=2)
 
         plt.show()
 

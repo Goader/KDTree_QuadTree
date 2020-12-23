@@ -4,7 +4,7 @@ import numpy as np
 
 class _PointsCollection:
     def __init__(self, points, **kwargs):
-        self._points = points
+        self._points = points.copy()
         self._kwargs = kwargs
 
     @property
@@ -18,7 +18,7 @@ class _PointsCollection:
 
 class _LinesCollection:
     def __init__(self, lines, **kwargs):
-        self._lines = lines
+        self._lines = lines.copy()
         self._kwargs = kwargs
 
     @property
@@ -35,6 +35,16 @@ class VisualiserContainer:
         self._lines_collections = []
         self._points_collections = []
         self._rects = []
+
+    def __copy__(self):
+        copied = VisualiserContainer()
+        copied._lines_collections = self._lines_collections.copy()
+        copied._points_collections = self._points_collections.copy()
+        copied._rects = self._rects.copy()
+        return copied
+
+    def copy(self):
+        return self.__copy__()
 
     @property
     def points_collections(self):
