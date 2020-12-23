@@ -69,20 +69,42 @@ class _KDTreeNode:
         self._condition_threshold = threshold
 
     # maybe should change it to np.array instead of list
-    def search_inside_rect(self, rect):
+    def search_inside_rect(self, rect, visualiser=None):
+        def visualise(rectangular, points=None, color=None, show_line=False):
+            if visualiser is not None:
+                if points is not None:
+                    points = list(map(lambda x: x.point, points))
+                    visualiser.add_background_points(points, color='white', s=7)
+                visualiser.next_scene()
+                if color is None:
+                    color = 'lawngreen' if points is not None else 'red'
+                visualiser.add_rect(rectangular, alpha=0.4, color=color)
+                if show_line:
+                    left_rect, right_rect = self._rect.divide(self._condition_axis,
+                                                              self._condition_threshold)
+                    visualiser.add_lines([(left_rect.upperright.point,
+                                           right_rect.lowerleft.point)],
+                                         color='darkorange', linewidth=2)
+
         if self.is_leaf():
             if rect.contains_point(self._point):
+                visualise(self._rect, points=[self._point])
                 return [self._point]
             else:
+                visualise(self._rect)
                 return []
         if not rect.overlaps(self._rect):
+            visualise(self._rect)
             return []
         if rect.contains_rect(self._rect):
+            visualise(self._rect, self._points)
             return self._points
 
         res = []
-        res.extend(self._left.search_inside_rect(rect))
-        res.extend(self._right.search_inside_rect(rect))
+        visualise(self._left.rect, color='silver', show_line=True)
+        res.extend(self._left.search_inside_rect(rect, visualiser=visualiser))
+        visualise(self._right.rect, color='silver', show_line=True)
+        res.extend(self._right.search_inside_rect(rect, visualiser=visualiser))
         return res
 
 
@@ -221,4 +243,13 @@ class KDTree:
 
     # should find a better name for this :)
     def find_points_in(self, rect):
-        return self._root.search_inside_rect(rect)
+        if self._search_visualiser is not None:
+            self._search_visualiser.add_background_rect(rect, alpha=0.4,
+                                                        color='midnightblue')
+            self._search_visualiser.next_scene()
+        result = self._root.search_inside_rect(rect, visualiser=self._search_visualiser)
+        if self._search_visualiser is not None:
+            self._search_visualiser.next_scene()
+            self._search_visualiser.draw()
+            self._search_visualiser.clear()
+        return result

@@ -15,11 +15,12 @@ if __name__ == '__main__':
               (76, 15)]
     points = np.array(points)
     tree = KDTree(points, visualise=True)
-    print(tree.contains((76, 15)))
-    print((40, 84) in tree)
-    print(np.array([44, 33]) in tree)
-    tree.contains((40, 56))
+    # print(tree.contains((76, 15)))
+    # print((40, 84) in tree)
+    # print(np.array([44, 33]) in tree)
+    # tree.contains((40, 56))
     rect = Rect((10, 10), (21, 85))
+    print('-' * 50)
     print(list(map(lambda x: x.point, tree.find_points_in(rect))))
 
     # rect = Rect((0,0), (10, 10))
