@@ -103,14 +103,17 @@ class Rect:
 
         return Rect(lowerleft, upperright)
 
-    def add_border(self, border_width_ratio):
+    def add_border(self, border_width_ratio, preserve_type=True):
         lowerleft = np.zeros(self._dimensions)
         upperright = np.zeros(self._dimensions)
 
         for idx, lwl_axis, upr_axis in zip(range(self._dimensions),
                                            self._lowerleft.point,
                                            self._upperright.point):
-            value_class = type(self._lowerleft.point[idx])
+            if preserve_type:
+                value_class = type(self._lowerleft.point[idx])
+            else:
+                value_class = float
             border_diff = value_class(border_width_ratio * (upr_axis - lwl_axis))
             lowerleft[idx] = lwl_axis - border_diff
             upperright[idx] = upr_axis + border_diff

@@ -2,6 +2,8 @@ from collections import Collection
 
 from geometry.Point import Point
 from geometry.Rect import Rect
+from visualiser.BuildVisualiser import BuildVisualiser
+from visualiser.SearchVisualiser import SearchVisualiser
 
 
 class _QuadTreeNode:
@@ -15,7 +17,7 @@ class _QuadTreeNode:
         self.left_down = None
         self.left_upper = None
 
-    def _subdivide(self):
+    def _subdivide(self, visualiser=None):
         lowerleft = self.boundary.lowerleft
         upperright = self.boundary.upperright
         xthreshold = (lowerleft.get_axis(0) + upperright.get_axis(0)) / 2
@@ -25,31 +27,52 @@ class _QuadTreeNode:
         lowerleft_rect, upperleft_rect = left.divide(1, ythreshold)
         lowerright_rect, upperright_rect = right.divide(1, ythreshold)
 
+        if visualiser is not None:
+            visualiser.next_scene()
+            visualiser.add_lines([(left.upperright.point,
+                                   right.lowerleft.point)],
+                                 color='darkorange', linewidth=2)
+            visualiser.add_lines([(upperleft_rect.lowerleft.point,
+                                   lowerright_rect.upperright.point)],
+                                 color='darkorange', linewidth=2)
+
         self.right_upper = _QuadTreeNode(upperright_rect, self.capacity)
         self.left_upper = _QuadTreeNode(upperleft_rect, self.capacity)
-        self.left_down = _QuadTreeNode(lowerright_rect, self.capacity)
-        self.right_down = _QuadTreeNode(lowerleft_rect, self.capacity)
+        self.left_down = _QuadTreeNode(lowerleft_rect, self.capacity)
+        self.right_down = _QuadTreeNode(lowerright_rect, self.capacity)
 
-    def insert(self, point):
+    def insert(self, point, visualiser=None):
+        def visualise(rectangular, color=None):
+            if visualiser is not None:
+                visualiser.next_scene()
+                if color is None:
+                    color = 'silver'
+                visualiser.add_rect(rectangular, alpha=0.4, color=color)
+                visualiser.add_points([point.point], color='red')
+
+        visualise(self.boundary)
         if not self.boundary.contains_point(point):
+            visualise(self.boundary, color='red')
             return False
+        visualise(self.boundary, 'lawngreen')
         self.points.append(point)
         if self.capacity < len(self.points):
             if not self.divided:
-                self._subdivide()
+                visualise(self.boundary, 'yellow')
+                self._subdivide(visualiser=visualiser)
                 self.divided = True
-        # the construction using ORs means it tries to insert the point
-        # until some subnode returns true as result, that means it has been inserted
+                # the construction using ORs means it tries to insert the point
+                # until some subnode returns true as result, that means it has been inserted
                 for p in self.points:
-                    self.right_upper.insert(p) \
-                        or self.right_down.insert(p) \
-                        or self.left_upper.insert(p) \
-                        or self.left_down.insert(p)
+                    self.right_upper.insert(p, visualiser=visualiser) \
+                        or self.right_down.insert(p, visualiser=visualiser) \
+                        or self.left_down.insert(p, visualiser=visualiser) \
+                        or self.left_upper.insert(p, visualiser=visualiser)
             else:
-                self.right_upper.insert(point) \
-                    or self.right_down.insert(point) \
-                    or self.left_upper.insert(point) \
-                    or self.left_down.insert(point)
+                self.right_upper.insert(point, visualiser=visualiser) \
+                    or self.right_down.insert(point, visualiser=visualiser) \
+                    or self.left_down.insert(point, visualiser=visualiser) \
+                    or self.left_upper.insert(point, visualiser=visualiser)
         return True
 
     def points_in_rec(self, rect):
@@ -70,7 +93,7 @@ class _QuadTreeNode:
 
 
 class QuadTree:
-    def __init__(self, rect, capacity, points=None):
+    def __init__(self, rect, capacity, points=None, visualise=False):
         if not isinstance(rect, Rect):
             if not isinstance(rect, Collection) \
                     or not len(rect) == 2:
@@ -78,16 +101,39 @@ class QuadTree:
                                 + "cannot be treated as one")
             rect = Rect(*rect)
         self._node = _QuadTreeNode(rect, capacity)
+        self._builder = None
+        self._searcher = None
+        if visualise:
+            self._builder = BuildVisualiser(rect.add_border(0.1, preserve_type=False)) \
+                .set_lines_kwargs(color='magenta', linewidth=2) \
+                .set_points_kwargs(color='green')
+            self._searcher = SearchVisualiser(
+                rect.add_border(0.1, preserve_type=False),
+                self._builder.final_scene_container()
+            )
         if points is not None:
             points = list(map(Point, points))
             self.insert_all(points)
 
+    def _inserted_visualise(self):
+        if self._builder is not None:
+            self._builder.next_scene()
+            self._builder.draw()
+            self._searcher.clear(self._builder.final_scene_container())
+            self._builder.clear()
+
     def insert(self, point):
-        self._node.insert(point)
+        if self._builder is not None:
+            self._builder.add_default_points([point.point])
+        self._node.insert(point, visualiser=self._builder)
+        self._inserted_visualise()
 
     def insert_all(self, points):
         for point in points:
-            self._node.insert(point)
+            if self._builder is not None:
+                self._builder.add_default_points([point.point])
+            self._node.insert(point, visualiser=self._builder)
+        self._inserted_visualise()
 
     def find_points_in(self, rect, raw=True):
         result = self._node.points_in_rec(rect)

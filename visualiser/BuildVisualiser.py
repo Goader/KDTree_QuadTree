@@ -15,17 +15,24 @@ class BuildVisualiser(Visualiser):
 
     def next_scene(self):
         super().next_scene()
-        self.add_points(self._default_points, **self._default_points_kwargs)
-        super().add_lines(self._default_lines, **self._default_lines_kwargs)
+        self.add_points(self._default_points.copy(), **self._default_points_kwargs)
+        super().add_lines(self._default_lines.copy(), **self._default_lines_kwargs)
 
     def set_lines_kwargs(self, **kwargs):
         self._default_lines_kwargs = kwargs
         return self
 
-    def set_points(self, points, **kwargs):
-        self._default_points = points
+    def set_points_kwargs(self, **kwargs):
         self._default_points_kwargs = kwargs
-        self.add_points(points, **kwargs)
+        return self
+
+    def set_points(self, points):
+        self._default_points = points
+        self.add_points(points, **self._default_points_kwargs)
+        return self
+
+    def add_default_points(self, points):
+        self._default_points.extend(points)
         return self
 
     def final_scene_container(self):

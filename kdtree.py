@@ -121,15 +121,20 @@ class KDTree:
 
         builder = None
         if visualise:
-            builder = BuildVisualiser(self._full_rect.add_border(0.1)) \
-                .set_points(points, color='green') \
-                .set_lines_kwargs(color='magenta', linewidth=2)
+            builder = BuildVisualiser(
+                self._full_rect.add_border(0.1, preserve_type=False)
+            ) \
+                .set_points_kwargs(color='green') \
+                .set_lines_kwargs(color='magenta', linewidth=2) \
+                .set_points(points)
         self._root = self._build_tree(self._points, self._full_rect, visualiser=builder)
         if visualise:
             builder.next_scene()
             builder.draw()
-            self._search_visualiser = SearchVisualiser(self._full_rect.add_border(0.1),
-                                                       builder)
+            self._search_visualiser = SearchVisualiser(
+                self._full_rect.add_border(0.1, preserve_type=False),
+                builder.final_scene_container()
+            )
 
     def __contains__(self, point):
         return self.contains(point)

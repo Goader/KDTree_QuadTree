@@ -34,6 +34,11 @@ class Visualiser:
         self._scenes_count += 1
         self._scenes.append(VisualiserContainer())
 
+    def clear(self):
+        self._scenes = []
+        self._scenes_count = 0
+        self.next_scene()
+
     def _callback_next(self, event):
         self._active_scene = (self._active_scene + 1) % self._scenes_count
         self._draw_scene()

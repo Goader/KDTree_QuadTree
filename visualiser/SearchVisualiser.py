@@ -2,13 +2,15 @@ from visualiser.Visualiser import Visualiser
 
 
 class SearchVisualiser(Visualiser):
-    def __init__(self, scope_rect, builder):
+    def __init__(self, scope_rect, background):
         super().__init__(scope_rect)
-        self._original_background = builder.final_scene_container()
+        self._original_background = background.copy()
         self._background = self._original_background.copy()
         self._scenes[-1] = self._background.copy()
 
-    def clear(self):
+    def clear(self, new_background=None):
+        if new_background is not None:
+            self._original_background = new_background.copy()
         self._background = self._original_background.copy()
         self._scenes_count = 1
         self._scenes = [self._background.copy()]
