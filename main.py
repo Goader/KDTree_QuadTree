@@ -11,7 +11,7 @@ if __name__ == '__main__':
               (64, 28), (71, 53), (73, 54), (75, 77), (83, 70),
               (89, 78), (91, 84), (94, 63), (99, 68), (99, 92)]
     points = np.array(points)
-    ktree = KDTree(points)
+    ktree = KDTree(points, visualise=False)
     qtree = QuadTree(Rect((10, 10), (100, 100)), 1, points=points, visualise=True)
 
     rect = Rect((22, 10), (95, 83))
@@ -19,6 +19,8 @@ if __name__ == '__main__':
     print(ktree.find_points_in(rect))
     print(qtree.find_points_in(rect))
 
+    ktree._search_visualiser = None
+    qtree._searcher = None
     for p in map(tuple, ktree.find_points_in(rect)):
         if p not in map(tuple, qtree.find_points_in(rect)):
             print('houston, we have a problem here')

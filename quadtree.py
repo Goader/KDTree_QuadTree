@@ -54,7 +54,7 @@ class _QuadTreeNode:
         if not self.boundary.contains_point(point):
             visualise(self.boundary, color='red')
             return False
-        visualise(self.boundary, 'lawngreen')
+        visualise(self.boundary, color='lawngreen')
         self.points.append(point)
         if self.capacity < len(self.points):
             if not self.divided:
@@ -65,30 +65,47 @@ class _QuadTreeNode:
                 # until some subnode returns true as result, that means it has been inserted
                 for p in self.points:
                     self.right_upper.insert(p, visualiser=visualiser) \
-                        or self.right_down.insert(p, visualiser=visualiser) \
-                        or self.left_down.insert(p, visualiser=visualiser) \
-                        or self.left_upper.insert(p, visualiser=visualiser)
+                    or self.right_down.insert(p, visualiser=visualiser) \
+                    or self.left_down.insert(p, visualiser=visualiser) \
+                    or self.left_upper.insert(p, visualiser=visualiser)
             else:
                 self.right_upper.insert(point, visualiser=visualiser) \
-                    or self.right_down.insert(point, visualiser=visualiser) \
-                    or self.left_down.insert(point, visualiser=visualiser) \
-                    or self.left_upper.insert(point, visualiser=visualiser)
+                or self.right_down.insert(point, visualiser=visualiser) \
+                or self.left_down.insert(point, visualiser=visualiser) \
+                or self.left_upper.insert(point, visualiser=visualiser)
         return True
 
-    def points_in_rec(self, rect):
+    def points_in_rec(self, rect, visualiser=None):
+        def visualise(rectangular, points=None, color=None):
+            if visualiser is not None:
+                if points is not None and points:
+                    points = list(map(lambda x: x.point, points))
+                    visualiser.add_background_points(points, color='white', s=7)
+                visualiser.next_scene()
+                if color is None:
+                    color = 'silver'
+                visualiser.add_rect(rectangular, alpha=0.4, color=color)
+
+        visualise(self.boundary)
         if not rect.overlaps(self.boundary):
+            visualise(self.boundary, color='red')
             return []
         if rect.contains_rect(self.boundary):
+            color = 'lawngreen' if self.points else 'red'
+            visualise(self.boundary, color=color, points=self.points)
             return self.points
         result = []
         if self.divided:
-            result.extend(self.left_down.points_in_rec(rect))
-            result.extend(self.left_upper.points_in_rec(rect))
-            result.extend(self.right_down.points_in_rec(rect))
-            result.extend(self.right_upper.points_in_rec(rect))
+            result.extend(self.left_down.points_in_rec(rect, visualiser=visualiser))
+            result.extend(self.left_upper.points_in_rec(rect, visualiser=visualiser))
+            result.extend(self.right_down.points_in_rec(rect, visualiser=visualiser))
+            result.extend(self.right_upper.points_in_rec(rect, visualiser=visualiser))
         else:
-            result.extend([point for point in self.points
-                           if rect.contains_point(point)])
+            found_points = [point for point in self.points
+                            if rect.contains_point(point)]
+            color = 'lawngreen' if found_points else 'red'
+            visualise(self.boundary, color=color, points=found_points)
+            result.extend(found_points)
         return result
 
 
@@ -146,5 +163,13 @@ class QuadTree:
         self._inserted_visualise()
 
     def find_points_in(self, rect, raw=True):
-        result = self._node.points_in_rec(rect)
+        if self._searcher is not None:
+            self._searcher.add_background_rect(rect, alpha=0.4,
+                                               color='midnightblue')
+            self._searcher.next_scene()
+        result = self._node.points_in_rec(rect, visualiser=self._searcher)
+        if self._searcher is not None:
+            self._searcher.next_scene()
+            self._searcher.draw()
+            self._searcher.clear()
         return result if not raw else [p.point for p in result]
