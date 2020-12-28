@@ -1,6 +1,7 @@
 from collections import Collection
 from functools import reduce
 from geometry.Point import Point
+from utils import get_numpy_type
 import numpy as np
 
 
@@ -58,7 +59,7 @@ class Rect:
                                 + "cannot be treated as one")
             rect = Rect(*rect)
         return self.lowerleft.precedes(rect.lowerleft) \
-            and self.upperright.follows(rect.upperright)
+               and self.upperright.follows(rect.upperright)
 
     def contains_point(self, point):
         if not isinstance(point, Point):
@@ -87,6 +88,18 @@ class Rect:
         # changing value of particular axis to get upr1 and lwl2
         upr1 = upr.point
         lwl2 = lwl.point
+
+        if get_numpy_type(upr1) != np.float64 \
+                and get_numpy_type([threshold]) == np.float64:
+            upr1 = upr1.astype(np.float64)
+            # why doesn't it work this way???
+            # print(lwl2.dtype)
+            # print(lwl2)
+            # lwl2 = lwl2.astype(np.float64)
+            # print(lwl2)
+        if get_numpy_type(lwl2) != np.float64 \
+                and get_numpy_type([threshold]) == np.float64:
+            lwl2 = lwl2.astype(np.float64)
         upr1[axis] = threshold
         lwl2[axis] = threshold
 

@@ -112,8 +112,14 @@ class QuadTree:
                 self._builder.final_scene_container()
             )
         if points is not None:
-            points = list(map(Point, points))
+            # points = list(map(Point, points))
             self.insert_all(points)
+
+    def _check_duplicate(self, point):
+        # point must not be already in the list!
+        for other in self._node.points:
+            if point == other:
+                raise ValueError('QuadTree cannot handle duplicate points')
 
     def _inserted_visualise(self):
         if self._builder is not None:
@@ -123,15 +129,19 @@ class QuadTree:
             self._builder.clear()
 
     def insert(self, point):
+        point = Point(point)
         if self._builder is not None:
             self._builder.add_default_points([point.point])
+        self._check_duplicate(point)
         self._node.insert(point, visualiser=self._builder)
         self._inserted_visualise()
 
     def insert_all(self, points):
+        points = list(map(Point, points))
         for point in points:
             if self._builder is not None:
                 self._builder.add_default_points([point.point])
+            self._check_duplicate(point)
             self._node.insert(point, visualiser=self._builder)
         self._inserted_visualise()
 

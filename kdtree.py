@@ -111,11 +111,17 @@ class _KDTreeNode:
 class KDTree:
     def __init__(self, points, dimensions=2, visualise=False):
         if len(points) == 0:
-            raise ValueError("KDTree cannot be instantiated with no points inside")
+            raise ValueError('KDTree cannot be instantiated with no points inside')
 
         self._dimensions = dimensions
         self._visualise = visualise
         self._points = np.array(list(map(Point, points)), dtype=Point)
+        # this KDTree cannot handle points duplicates,
+        # still it can be done by storing in Point object the count of points
+        for i, point in enumerate(self._points):
+            for other in self._points[i+1:]:
+                if point == other:
+                    raise ValueError('KDTree cannot handle duplicate points')
         self._full_rect = Rect.from_points(self._points)
         self._search_visualiser = None
 
