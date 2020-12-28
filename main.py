@@ -1,17 +1,28 @@
 from kdtree import KDTree
+from quadtree import QuadTree
 import numpy as np
 from geometry.Rect import Rect
-
+import sys
 
 if __name__ == '__main__':
-    points = [(14, 93), (17, 73), (19, 33),
-              (27, 68), (29, 72), (33, 30),
-              (50, 57), (59, 17), (62, 63),
-              (66, 41), (85, 56), (86, 56),
-              (91, 11), (92, 98), (98, 47)]
+    points = [(11, 12), (12, 45), (18, 68), (19, 62), (20, 25),
+              (23, 17), (23, 68), (24, 51), (25, 98), (28, 73),
+              (28, 83), (32, 80), (36, 15), (36, 59), (36, 73),
+              (37, 59), (53, 64), (54, 81), (55, 98), (57, 87),
+              (64, 28), (71, 53), (73, 54), (75, 77), (83, 70),
+              (89, 78), (91, 84), (94, 63), (99, 68), (99, 92)]
     points = np.array(points)
-    tree = KDTree(points, visualise=True)
+    ktree = KDTree(points, visualise=True)
+    qtree = QuadTree(Rect((10, 10), (100, 100)), 4, points=points)
 
-    rect = Rect((30, 10), (95, 70))
+    print(sys.getrecursionlimit())
+    sys.setrecursionlimit(1500)
+
+    rect = Rect((22, 10), (95, 83))
     print('-' * 50)
-    print(list(map(lambda x: x.point, tree.find_points_in(rect))))
+    print(ktree.find_points_in(rect))
+    print(qtree.find_points_in(rect))
+
+    for p in map(tuple, ktree.find_points_in(rect)):
+        if p not in map(tuple, qtree.find_points_in(rect)):
+            print('houston, we have a problem here')

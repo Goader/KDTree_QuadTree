@@ -23,6 +23,14 @@ class Point:
     def point(self):
         return self._point.copy()
 
+    @property
+    def x(self):  # convenient usage for QuadTree implementation
+        return self._point[0]
+
+    @property
+    def y(self):  # convenient usage for QuadTree implementation
+        return self._point[1]
+
     def get_axis(self, axis):
         return self._point[axis]
 

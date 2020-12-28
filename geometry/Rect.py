@@ -1,3 +1,4 @@
+from collections import Collection
 from functools import reduce
 from geometry.Point import Point
 import numpy as np
@@ -50,8 +51,14 @@ class Rect:
                and rect.lowerleft.precedes(self.upperright)
 
     def contains_rect(self, rect):
+        if not isinstance(rect, Rect):
+            if not isinstance(rect, Collection) \
+                    or not len(rect) == 2:
+                raise TypeError("Passed argument is not a Rect object or "
+                                + "cannot be treated as one")
+            rect = Rect(*rect)
         return self.lowerleft.precedes(rect.lowerleft) \
-               and self.upperright.follows(rect.upperright)
+            and self.upperright.follows(rect.upperright)
 
     def contains_point(self, point):
         if not isinstance(point, Point):

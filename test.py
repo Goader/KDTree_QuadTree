@@ -1,5 +1,6 @@
 import unittest
 from kdtree import KDTree
+from quadtree import *
 from geometry.Rect import Rect
 
 
@@ -28,10 +29,10 @@ class TestTrees(unittest.TestCase):
 
         for checkpoint, expected_result in zip(checkpoints, results):
             # direct call to the method
-            self.assertEqual(tree.contains(checkpoint), expected_result,
+            self.assertEqual(expected_result, tree.contains(checkpoint),
                              f'{checkpoint} point test failed')
             # call using special class methods
-            self.assertEqual(checkpoint in tree, expected_result,
+            self.assertEqual(expected_result, checkpoint in tree,
                              f'{checkpoint} point test failed')
 
     def test_contains_float(self):
@@ -58,10 +59,10 @@ class TestTrees(unittest.TestCase):
 
         for checkpoint, expected_result in zip(checkpoints, results):
             # direct call to the method
-            self.assertEqual(tree.contains(checkpoint), expected_result,
+            self.assertEqual(expected_result, tree.contains(checkpoint),
                              f'{checkpoint} point test failed')
             # call using special class methods
-            self.assertEqual(checkpoint in tree, expected_result,
+            self.assertEqual(expected_result, checkpoint in tree,
                              f'{checkpoint} point test failed')
 
     def test_search_points_int(self):
@@ -77,15 +78,20 @@ class TestTrees(unittest.TestCase):
                    (62, 63), (66, 41), (85, 56),
                    (86, 58), (91, 11)]
 
-        tree = KDTree(points)
-        # quadtree here
+        ktree = KDTree(points)
+        qtree = QuadTree(Rect([10, 10], [100, 100]), 1, points=points)
 
-        inside = tree.find_points_in(rect)
-        self.assertEqual(len(inside), len(results),
+        insidek = ktree.find_points_in(rect)
+        insideq = qtree.find_points_in(rect)
+        self.assertEqual(len(results), len(insidek),
                          f'The count of found points does not match the expected')
-        for point in inside:
-            self.assertTrue(tuple(point.point) in results,
-                            f'{point} is not inside the {rect}')
+        self.assertEqual(len(results), len(insideq),
+                         f'The count of found points does not match the expected')
+        for pointk, pointq in zip(insidek, insideq):
+            self.assertTrue(tuple(pointk) in results,
+                            f'{pointk} is not inside the {rect}')
+            self.assertTrue(tuple(pointq) in results,
+                            f'{pointq} is not inside the {rect}')
 
     def test_search_points_float(self):
         points = [(13.0088, 73.47405),  (19.37122, 92.27245), (26.81686, 60.45529),
@@ -101,15 +107,20 @@ class TestTrees(unittest.TestCase):
                    (58.60036, 39.4115),  (66.36514, 72.69857),
                    (69.98282, 24.71197), (71.91889, 40.94198)]
 
-        tree = KDTree(points)
-        # quadtree here
+        ktree = KDTree(points)
+        qtree = QuadTree(Rect([10, 10], [100, 100]), 1, points=points)
 
-        inside = tree.find_points_in(rect)
-        self.assertEqual(len(inside), len(results),
+        insidek = ktree.find_points_in(rect)
+        insideq = qtree.find_points_in(rect)
+        self.assertEqual(len(results), len(insidek),
                          f'The count of found points does not match the expected')
-        for point in inside:
-            self.assertTrue(tuple(point.point) in results,
-                            f'{point} is not inside the {rect}')
+        self.assertEqual(len(results), len(insideq),
+                         f'The count of found points does not match the expected')
+        for pointk, pointq in zip(insidek, insideq):
+            self.assertTrue(tuple(pointk) in results,
+                            f'{pointk} is not inside the {rect}')
+            self.assertTrue(tuple(pointq) in results,
+                            f'{pointq} is not inside the {rect}')
 
 
 if __name__ == '__main__':

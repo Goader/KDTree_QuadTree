@@ -242,7 +242,7 @@ class KDTree:
         return result
 
     # should find a better name for this :)
-    def find_points_in(self, rect):
+    def find_points_in(self, rect, raw=True):
         if self._search_visualiser is not None:
             self._search_visualiser.add_background_rect(rect, alpha=0.4,
                                                         color='midnightblue')
@@ -252,4 +252,4 @@ class KDTree:
             self._search_visualiser.next_scene()
             self._search_visualiser.draw()
             self._search_visualiser.clear()
-        return result
+        return result if not raw else [p.point for p in result]
