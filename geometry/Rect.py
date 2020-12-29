@@ -59,7 +59,7 @@ class Rect:
                                 + "cannot be treated as one")
             rect = Rect(*rect)
         return self.lowerleft.precedes(rect.lowerleft) \
-               and self.upperright.follows(rect.upperright)
+            and self.upperright.follows(rect.upperright)
 
     def contains_point(self, point):
         if not isinstance(point, Point):

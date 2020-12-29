@@ -1,9 +1,11 @@
 from collections import Collection
+import numpy as np
 
 from geometry.Point import Point
 from geometry.Rect import Rect
 from visualiser.BuildVisualiser import BuildVisualiser
 from visualiser.SearchVisualiser import SearchVisualiser
+from utils import timeit
 
 
 class _QuadTreeNode:
@@ -65,14 +67,14 @@ class _QuadTreeNode:
                 # until some subnode returns true as result, that means it has been inserted
                 for p in self.points:
                     self.right_upper.insert(p, visualiser=visualiser) \
-                    or self.right_down.insert(p, visualiser=visualiser) \
-                    or self.left_down.insert(p, visualiser=visualiser) \
-                    or self.left_upper.insert(p, visualiser=visualiser)
+                        or self.right_down.insert(p, visualiser=visualiser) \
+                        or self.left_down.insert(p, visualiser=visualiser) \
+                        or self.left_upper.insert(p, visualiser=visualiser)
             else:
                 self.right_upper.insert(point, visualiser=visualiser) \
-                or self.right_down.insert(point, visualiser=visualiser) \
-                or self.left_down.insert(point, visualiser=visualiser) \
-                or self.left_upper.insert(point, visualiser=visualiser)
+                    or self.right_down.insert(point, visualiser=visualiser) \
+                    or self.left_down.insert(point, visualiser=visualiser) \
+                    or self.left_upper.insert(point, visualiser=visualiser)
         return True
 
     def points_in_rec(self, rect, visualiser=None):
@@ -110,6 +112,7 @@ class _QuadTreeNode:
 
 
 class QuadTree:
+    @timeit('QuadTree construction', 5)
     def __init__(self, rect, capacity, points=None, visualise=False):
         if not isinstance(rect, Rect):
             if not isinstance(rect, Collection) \
@@ -129,7 +132,7 @@ class QuadTree:
                 self._builder.final_scene_container()
             )
         if points is not None:
-            # points = list(map(Point, points))
+            points = np.array(points)
             self.insert_all(points)
 
     def _check_duplicate(self, point):
@@ -162,6 +165,7 @@ class QuadTree:
             self._node.insert(point, visualiser=self._builder)
         self._inserted_visualise()
 
+    @timeit('QuadTree search', 5)
     def find_points_in(self, rect, raw=True):
         if self._searcher is not None:
             self._searcher.add_background_rect(rect, alpha=0.4,

@@ -9,18 +9,14 @@ if __name__ == '__main__':
               (28, 83), (32, 80), (36, 15), (36, 59), (36, 73),
               (37, 59), (53, 64), (54, 81), (55, 98), (57, 87),
               (64, 28), (71, 53), (73, 54), (75, 77), (83, 70),
-              (89, 78), (91, 84), (94, 63), (99, 68), (99, 92)]
+              (89, 78), (91, 84), (94, 63), (99, 68), (99, 92), (1 << 62, 1 << 62)]
     points = np.array(points)
+    print(np.max(points))
     ktree = KDTree(points, visualise=False)
-    qtree = QuadTree(Rect((10, 10), (100, 100)), 1, points=points, visualise=True)
+    qtree = QuadTree(Rect((10, 10), (1 << 62, 1 << 62)),
+                     1, points=points, visualise=False)
 
     rect = Rect((22, 10), (95, 83))
     print('-' * 50)
     print(ktree.find_points_in(rect))
     print(qtree.find_points_in(rect))
-
-    ktree._search_visualiser = None
-    qtree._searcher = None
-    for p in map(tuple, ktree.find_points_in(rect)):
-        if p not in map(tuple, qtree.find_points_in(rect)):
-            print('houston, we have a problem here')

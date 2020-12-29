@@ -3,6 +3,7 @@ from geometry.Rect import Rect
 from visualiser.BuildVisualiser import BuildVisualiser
 from visualiser.SearchVisualiser import SearchVisualiser
 from collections.abc import Iterable, Sized
+from utils import timeit
 import numpy as np
 
 
@@ -63,8 +64,11 @@ class _KDTreeNode:
     def condition_threshold(self):
         return self._condition_threshold
 
-    def set_condition(self, axis, threshold):
-        self._condition = lambda point: point.get_axis(axis) <= threshold
+    def set_condition(self, axis, threshold, right_inclusive=False):
+        if not right_inclusive:
+            self._condition = lambda point: point.get_axis(axis) <= threshold
+        else:
+            self._condition = lambda point: point.get_axis(axis) < threshold
         self._condition_axis = axis
         self._condition_threshold = threshold
 
@@ -109,6 +113,7 @@ class _KDTreeNode:
 
 
 class KDTree:
+    @timeit('KDTree construction', 5)
     def __init__(self, points, dimensions=2, visualise=False):
         if len(points) == 0:
             raise ValueError('KDTree cannot be instantiated with no points inside')
@@ -159,6 +164,7 @@ class KDTree:
 
     # points is a numpy array of Point objects
     def _build_tree(self, points, rect, visualiser=None):
+        # print(len(inspect.stack(0)))
         if visualiser is not None:
             visualiser.next_scene()
             visualiser.add_rect(rect, alpha=0.4, color='silver')
@@ -193,6 +199,11 @@ class KDTree:
 
         left_points = [point for point in points if node.condition(point)]
         right_points = [point for point in points if not node.condition(point)]
+
+        if len(left_points) == len(points):
+            node.set_condition(cond_axis, cond_threshold, right_inclusive=True)
+            left_points = [point for point in points if node.condition(point)]
+            right_points = [point for point in points if not node.condition(point)]
 
         node.left = self._build_tree(left_points, left_rect, visualiser=visualiser)
         node.right = self._build_tree(right_points, right_rect, visualiser=visualiser)
@@ -230,7 +241,7 @@ class KDTree:
                 if len(point) == self._dimensions:
                     point = Point(point)
                 else:
-                    raise TypeError("The dimensions of the given point " \
+                    raise TypeError("The dimensions of the given point "
                                     + "and KDTree do not match")
             else:
                 raise TypeError("Passed object is not iterable or Point instance")
@@ -253,6 +264,7 @@ class KDTree:
         return result
 
     # should find a better name for this :)
+    @timeit('KDTree search', 5)
     def find_points_in(self, rect, raw=True):
         if self._search_visualiser is not None:
             self._search_visualiser.add_background_rect(rect, alpha=0.4,

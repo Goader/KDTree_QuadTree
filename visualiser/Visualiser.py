@@ -95,4 +95,3 @@ class Visualiser:
         self._draw_scene()
 
         self._active_scene = None
-
