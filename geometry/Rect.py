@@ -13,6 +13,8 @@ class Rect:
             upperright = Point(upperright)
         if lowerleft.axes_count != upperright.axes_count:
             raise TypeError('Point dimensions do not match. It is not possible to instantiate Rect')
+        if not lowerleft.precedes(upperright):
+            raise ValueError('Lower-left point must precede the upper-right')
         self._dimensions = lowerleft.axes_count
         self._lowerleft = lowerleft
         self._upperright = upperright

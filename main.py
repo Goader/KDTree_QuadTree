@@ -9,14 +9,14 @@ if __name__ == '__main__':
               (28, 83), (32, 80), (36, 15), (36, 59), (36, 73),
               (37, 59), (53, 64), (54, 81), (55, 98), (57, 87),
               (64, 28), (71, 53), (73, 54), (75, 77), (83, 70),
-              (89, 78), (91, 84), (94, 63), (99, 68), (99, 92), (1 << 62, 1 << 62)]
+              (89, 78), (91, 84), (94, 63), (99, 68), (99, 92)]
     points = np.array(points)
-    print(np.max(points))
-    ktree = KDTree(points, visualise=False)
-    qtree = QuadTree(Rect((10, 10), (1 << 62, 1 << 62)),
-                     1, points=points, visualise=False)
+    ktree = KDTree(points, visualise=True)
+    qtree = QuadTree(Rect((10, 10), (100, 100)),
+                     2, points=points, visualise=True)
 
-    rect = Rect((22, 10), (95, 83))
+    rect = Rect((7, 9), (42, 103))
     print('-' * 50)
     print(ktree.find_points_in(rect))
     print(qtree.find_points_in(rect))
+

@@ -72,7 +72,7 @@ class Visualiser:
     def draw(self):
         # remove is_empty() if empty plots can be drawn
         # recheck if buttons behaviour match expected with scenes count equal to 0
-        if self._scenes_count == 0 and self._scenes[0].is_empty():
+        if self._scenes_count == 1 and self._scenes[0].is_empty():
             raise ValueError('Visualiser has nothing to show. Try adding some objects')
 
         self._active_scene = 0

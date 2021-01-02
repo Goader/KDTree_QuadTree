@@ -124,6 +124,9 @@ class KDTree:
         # this KDTree cannot handle points duplicates,
         # still it can be done by storing in Point object the count of points
         for i, point in enumerate(self._points):
+            if point.axes_count != dimensions:
+                raise TypeError(f'{point} dimensions do not match the KDTree dimensions,'
+                                + f'which is {dimensions}')
             for other in self._points[i+1:]:
                 if point == other:
                     raise ValueError('KDTree cannot handle duplicate points')
@@ -238,13 +241,12 @@ class KDTree:
     def contains(self, point, visualise=True):
         if not isinstance(point, Point):
             if isinstance(point, Iterable) and isinstance(point, Sized):
-                if len(point) == self._dimensions:
-                    point = Point(point)
-                else:
-                    raise TypeError("The dimensions of the given point "
-                                    + "and KDTree do not match")
+                point = Point(point)
             else:
                 raise TypeError("Passed object is not iterable or Point instance")
+        if point.axes_count != self._dimensions:
+            raise TypeError("The dimensions of the given point "
+                            + "and KDTree do not match")
 
         if self._search_visualiser is not None and visualise:
             # if there exists such a point, it will be shown being empty inside
@@ -266,6 +268,9 @@ class KDTree:
     # should find a better name for this :)
     @timeit('KDTree search', 5)
     def find_points_in(self, rect, raw=True):
+        if rect.dimensions != self._dimensions:
+            raise TypeError("The dimensions of the given Rect object "
+                            + "and KDTree do not match")
         if self._search_visualiser is not None:
             self._search_visualiser.add_background_rect(rect, alpha=0.4,
                                                         color='midnightblue')

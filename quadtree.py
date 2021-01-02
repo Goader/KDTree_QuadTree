@@ -50,7 +50,7 @@ class _QuadTreeNode:
                 if color is None:
                     color = 'silver'
                 visualiser.add_rect(rectangular, alpha=0.4, color=color)
-                visualiser.add_points([point.point], color='red')
+                visualiser.add_points([point.point], color='midnightblue')
 
         visualise(self.boundary)
         if not self.boundary.contains_point(point):
@@ -63,7 +63,7 @@ class _QuadTreeNode:
                 visualise(self.boundary, 'yellow')
                 self._subdivide(visualiser=visualiser)
                 self.divided = True
-                # the construction using ORs means it tries to insert the point
+                # the construction using ORs means that it tries to insert the point
                 # until some subnode returns true as result, that means it has been inserted
                 for p in self.points:
                     self.right_upper.insert(p, visualiser=visualiser) \
@@ -114,12 +114,14 @@ class _QuadTreeNode:
 class QuadTree:
     @timeit('QuadTree construction', 5)
     def __init__(self, rect, capacity, points=None, visualise=False):
+        assert capacity > 0, 'Capacity must be a positive integer'
         if not isinstance(rect, Rect):
             if not isinstance(rect, Collection) \
                     or not len(rect) == 2:
                 raise TypeError("Passed argument is not a Rect object or "
                                 + "cannot be treated as one")
             rect = Rect(*rect)
+        self._scope = rect
         self._node = _QuadTreeNode(rect, capacity)
         self._builder = None
         self._searcher = None
@@ -131,15 +133,9 @@ class QuadTree:
                 rect.add_border(0.1, preserve_type=False),
                 self._builder.final_scene_container()
             )
-        if points is not None:
+        if points is not None and len(points) > 0:
             points = np.array(points)
             self.insert_all(points)
-
-    def _check_duplicate(self, point):
-        # point must not be already in the list!
-        for other in self._node.points:
-            if point == other:
-                raise ValueError('QuadTree cannot handle duplicate points')
 
     def _inserted_visualise(self):
         if self._builder is not None:
@@ -148,25 +144,36 @@ class QuadTree:
             self._searcher.clear(self._builder.final_scene_container())
             self._builder.clear()
 
-    def insert(self, point):
-        point = Point(point)
+    def _insert(self, point):
+        if point.axes_count != 2:
+            raise TypeError(f'The dimensions of the point {point} and QuadTree'
+                            + ' do not match. Point must have 2 dimensions')
+        if not self._scope.contains_point(point):
+            raise ValueError(f'The point {point} is not within the initial scope rectangle')
         if self._builder is not None:
             self._builder.add_default_points([point.point])
-        self._check_duplicate(point)
+        # point must not be already in the list!
+        for other in self._node.points:
+            if point == other:
+                raise ValueError('QuadTree cannot handle duplicate points')
         self._node.insert(point, visualiser=self._builder)
+
+    def insert(self, point):
+        point = Point(point)
+        self._insert(point)
         self._inserted_visualise()
 
     def insert_all(self, points):
         points = list(map(Point, points))
         for point in points:
-            if self._builder is not None:
-                self._builder.add_default_points([point.point])
-            self._check_duplicate(point)
-            self._node.insert(point, visualiser=self._builder)
+            self._insert(point)
         self._inserted_visualise()
 
     @timeit('QuadTree search', 5)
     def find_points_in(self, rect, raw=True):
+        if rect.dimensions != 2:
+            raise TypeError("The dimensions of the given Rect object "
+                            + "and QuadTree do not match")
         if self._searcher is not None:
             self._searcher.add_background_rect(rect, alpha=0.4,
                                                color='midnightblue')

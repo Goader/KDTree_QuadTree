@@ -29,6 +29,7 @@ class Point:
 
     @property
     def y(self):  # convenient usage for QuadTree implementation
+        assert self.axes_count >= 2, 'It is impossible to get y out of 1D point'
         return self._point[1]
 
     def get_axis(self, axis):

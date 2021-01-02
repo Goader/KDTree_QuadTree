@@ -4,7 +4,7 @@ import numpy as np
 from geometry.Rect import Rect
 
 """
-This tests print out information.
+These tests print out the information including execution time and parameters values.
 For the time to be printed, make sure there are active decorators @timeit
 above the "__init__" and "find_points_in" methods in both kdtree.py and quadtree.py
 
@@ -14,21 +14,24 @@ above the "__init__" and "find_points_in" methods in both kdtree.py and quadtree
 """
 
 
-def test_random(count=200, capacity=1):
-    points = np.random.uniform(0, 100, (count, 2))
-    ktree = KDTree(points)
-    qtree = QuadTree(Rect((0, 0), (100, 100)), capacity, points=points, visualise=False)
+def test_random(count=200, capacity=1, dimensions=2):
+    points = np.random.uniform(0, 100, (count, dimensions))
+    ktree = KDTree(points, dimensions=dimensions)
+    qtree = None
+    if dimensions == 2:
+        qtree = QuadTree(Rect((0, 0), (100, 100)), capacity, points=points)
 
-    rect = Rect((20, 20), (65, 80))
+    rect = Rect(tuple([20] * dimensions), tuple([65] + [80] * (dimensions - 1)))
     print('-' * 35)
     ktree.find_points_in(rect)
-    qtree.find_points_in(rect)
+    if dimensions == 2:
+        qtree.find_points_in(rect)
 
 
 def test_grid(power=3, capacity=1):
     points = []
-    for i in range(1 << power + 1):
-        for j in range(1 << power + 1):
+    for i in range((1 << power) + 1):
+        for j in range((1 << power) + 1):
             point = (i * 32 / (1 << power), j * 32 / (1 << power))
             points.append(point)
     points = np.array(points)
@@ -120,8 +123,8 @@ def test_outliers2(count=200, capacity=1):
     ktree = KDTree(points)
     qtree = QuadTree(Rect((0, 0), (1 << 62, 1 << 62)), capacity, points=points)
 
-    rect = Rect((5, 5), (1 << 61 + 1 << 60 + 1 << 59 + 1,
-                         1 << 61 + 1 << 60 + 1 << 59 + 1))
+    rect = Rect((5, 5), ((1 << 61) + (1 << 60) + (1 << 59) + 1,
+                         (1 << 61) + (1 << 60) + (1 << 59) + 1))
     print('-' * 35)
     ktree.find_points_in(rect)
     qtree.find_points_in(rect)
@@ -192,16 +195,20 @@ def test_all(count=200, power=3, capacity=1):
               f'parameters - count: {count}, capacity: {capacity}')
         try:
             func(count=count, capacity=capacity)
-        except ValueError:
+        except ValueError as ex:
             print(f'ERROR: duplicates found')
+            print(str(ex))
 
     print('-' * 20, test_grid.__name__, '-' * (30 - len(test_grid.__name__)),
           f'parameters - power: {power}, capacity: {capacity}')
     try:
         test_grid(power=power, capacity=capacity)
-    except ValueError:
+    except ValueError as ex:
         print(f'ERROR: duplicates found')
+        print(str(ex))
 
 
 if __name__ == '__main__':
-    test_all()
+    for dims in range(50, 51):
+        print('-' * 25 + ' ' + str(dims) + ' ' + '-' * 25)
+        test_random(count=1000, dimensions=dims)
